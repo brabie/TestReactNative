@@ -10,7 +10,7 @@ export default function Search() {
       <Button title = "Rechercher" onPress = { () => {} } />
       <FlatList
       data = {films}
-      keyExtractor = {(item) => {item.id.toString()}}
+      keyExtractor = {(item) => item.id.toString()}
       renderItem = {({item}) => <FilmItem/>}
       />
     </View>
