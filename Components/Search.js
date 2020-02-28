@@ -3,18 +3,19 @@ import { StyleSheet, Button, TextInput, View, Text, FlatList} from 'react-native
 import films from '../Helpers/filmsData';
 import FilmItem from './FilmItem'
 import {getFilmsFromApiWithSearchedText} from '../API/TMDBApi'
-export default function Search() {
 
+export default function Search() {
+  const state = {films : [] }
   function _loadFilms() {
-    console.log(getFilmsFromApiWithSearchedText("star"))
-    getFilmsFromApiWithSearchedText("star").then(data => console.log(data))
+    getFilmsFromApiWithSearchedText("star").then((data) => {state.films = data.results})
+    console.log(state.films);
   }
   return (
     <View style={styles.main_container}>
       <TextInput style = {styles.textinput} placeholder = "Entrer le titre du film" />
       <Button title = "Rechercher" onPress = { () => {_loadFilms()} } />
       <FlatList
-      data = {films}
+      data = {state.films}
       keyExtractor = {(item) => item.id.toString()}
       renderItem = {({item}) => <FilmItem film = {item} />}
       />
