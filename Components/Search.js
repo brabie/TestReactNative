@@ -1,5 +1,5 @@
 // EXT
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ActivityIndicator, Button, TextInput, View, FlatList} from 'react-native';
 
 // INT
@@ -9,21 +9,43 @@ import styles from '../Styles/Search'
 
 export default function Search() {
 
-  // CONST & VARS
-  var searchedText = ""
+  // REFERENCES
+  const searchedText = useRef(null)
+  const page = useRef(0)
+  const totalPage = useRef(0)
 
-  // STATES
+  // STATES & REFERENCES
   const [films, setFilms] = useState([])
   const [loading, setLoading] = useState(false)
 
+  console.log("page ", page.current);
+
   // FUNCIONS
   function _searchTextInputChanged(text) {
-    searchedText = text
+    searchedText.current = text
   }
 
   function _loadFilms() {
-    setLoading(true)
-    getFilmsFromApiWithSearchedText(searchedText).then((data) => {setFilms(data.results); setLoading(false)})
+    if (searchedText.current) {
+      setLoading(true)
+      getFilmsFromApiWithSearchedText(searchedText.current, page.current + 1)
+        .then((data) => {
+          page.current = page.current + 1;
+          setFilms([...films, ...data.results]);
+          setLoading(false)
+        })
+    } else {
+      console.log("Empty searched text !");
+    }
+  }
+
+  function _newSearch() {
+    if ( films.length != 0 ) {
+      setFilms([]);
+      page.current = 0
+      totalPage.current = 0
+    }
+    _loadFilms();
   }
 
   // RETURN
@@ -32,18 +54,23 @@ export default function Search() {
     <View style={styles.main_container}>
       <TextInput style = {styles.textinput}
                  placeholder = "Entrer le titre du film"
-                 onSubmitEditing = { () => _loadFilms()}
+                 onSubmitEditing = { () => _newSearch()}
                  onChangeText = { (text) => _searchTextInputChanged(text) } />
-      <Button title = "Rechercher" onPress = { () => _loadFilms() } />
+      <Button title = "Rechercher" onPress = { () => _newSearch() } />
+      <FlatList
+        data = {films}
+        keyExtractor = {(item) => item.id.toString()}
+        onEndReachedThreshold = {0.5}
+        onEndReached = { () => _loadFilms()}
+        renderItem = {({item}) => <FilmItem film = {item} />}
+      />
       { loading ?
         <ActivityIndicator size="large" color="#0000ff" />
       :
-        <FlatList
-          data = {films}
-          keyExtractor = {(item) => item.id.toString()}
-          renderItem = {({item}) => <FilmItem film = {item} />}
-        />
+        <></>
       }
+
+
     </View>
   );
 }
